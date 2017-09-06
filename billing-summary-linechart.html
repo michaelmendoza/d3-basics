@@ -1,0 +1,240 @@
+
+<!DOCTYPE html>
+<html lang-"en">
+<head>
+	<meta charset="UTF-8">
+	<title> D3 Demo </title>
+	<meta name="viewport" content="width=device-width" minimum-scale="1" maximum-scale="1">
+	<title> React D3 Seed </title>
+	<style type="text/css">
+		.line-chart {
+			cursor: hand; cursor: pointer;
+			font-family: Arial, sans-serif;
+			font-size: 10px;	
+			margin-bottom: 60px;
+		}
+
+		.line-chart .axis path, .line-chart .axis line {
+			fill: none;
+			stroke: #939393;
+			opacity: 0.6;
+			stroke-width: 1;
+			shape-rendering: crispEdges;
+		}
+
+		.line-chart .axis.y .domain {
+			stroke: none;
+		}		
+	</style>
+</head>
+<body>
+	<section style="text-align:center">
+		<h1> Billing Chart </h1>
+		<div id='billing-line-chart'></div>
+		<div id='billing-pie-chart'></div>
+	</section>
+
+  <!--Vendor Javascript - D3 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.16/d3.min.js"></script>
+
+  <script type="text/javascript">
+  
+  var BillingLineChart = function(data) {
+
+  	data = data || getRandomArray(50,  100, 50);
+
+  	var svg, xmin, xmax, ymin, ymax, x, y, line, area;		
+  	var id = '#billing-line-chart';
+		var areaColor = '#C7EBFE';
+		var lineColor = '#5DAEFD';
+		var width = 850;
+		var height = 400;
+		var margin = { top: 20, right: 20, bottom: 35, left: 35 };
+
+		// Adjust dimensions to margins
+		width = width - margin.left - margin.right,
+		height = height - margin.top - margin.bottom;
+
+		init();
+		draw();
+
+		function draw() {
+			var g = svg.append("g") 			// Create Group
+				.attr("class", "line-data-group")
+				.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+			drawAxis();
+			drawLine(g, data);						// Draw Line
+			drawPointOnLine(g, data);			// Draw Points on Line
+		}
+
+		function init() {
+
+			svg = d3.select(id)
+				.append("svg")
+				.attr("class", "line-chart")
+				.attr("width", width + margin.left + margin.right)
+				.attr("height", height + margin.top + margin.bottom)	
+
+			// Min and Max Values
+			xmin = d3.min(data, function (d) { return d.x; });
+			xmax = d3.max(data, function(d) { return d.x; });
+			ymin = d3.min(data, function (d) { return d.y; });
+			ymax = d3.max(data, function(d) { return d.y; });
+
+			// Get Scale
+			x = d3.scale.linear()
+				.domain([xmin, xmax])
+				.range([0, width]);
+			y = d3.scale.linear()
+				.domain([ymin , ymax])
+				.range([height, 0]);
+
+			// Create area, and line chart objects
+			line = d3.svg.line()
+				.x(function(d) { return x(d.x); })
+				.y(function(d) { return y(d.y); })
+
+			area = d3.svg.area()
+				.x(function(d) { return x(d.x); })
+				.y0(height)
+				.y1(function(d) { return y(d.y); })
+		}
+
+		function drawLine(group, data) {
+			// Create line chart
+			group.append("path")
+				.data([data])
+				.attr("class", "line")
+				.attr("d", line)
+				.attr("stroke", lineColor)
+				.attr('stroke-width', 2)
+				.attr("fill", 'none')				    
+				.attr("opacity", "0.8")
+
+			// Create area chart
+			group.append("path")
+				.data([data])
+				.attr("class", "area")
+				.attr("d", area)
+				.attr("fill", areaColor)	
+				.attr("opacity", "0.25")					
+		}
+
+		function drawPointOnLine(group, data) {
+			group.selectAll("circle")
+				.data(data)
+				.enter()
+				.append("circle")
+				.attr("r", 2.0)
+				.attr("cx", function(d) { return x(d.x); })
+				.attr("cy", function(d) { return y(d.y); })
+				.attr("fill", '#FFFFFF')
+				.attr("stroke", lineColor)
+
+		}
+
+		function drawAxis() {
+			var xAxis = d3.svg.axis()
+				.scale(x)
+				.ticks(5)
+
+			var yAxis = d3.svg.axis()
+				.scale(y)
+				.orient('left')
+				.ticks(5)
+				.tickSize(-width);
+
+		  svg.append("g")
+				.attr("class", "x axis")
+				.attr("transform", "translate(" + margin.left + " ," + (height + margin.top) + ")")
+				.call(xAxis);
+
+		  svg.append("g")
+				.attr("class", "y axis")
+				.attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+				.call(yAxis);
+
+			var xAxisLabel = svg.append("g")
+				.attr("class", "x-axis-label")
+				.attr("transform", "translate(" + 10 + "," + (margin.top + height / 2) + ")rotate(-90)")
+
+			xAxisLabel.append('text')
+				.attr("x", 0)
+				.attr("y", 0)
+				.attr("text-anchor", "middle")
+				.text("Income")	
+				.style("font-size", "12px")
+
+			var yAxisLabel = svg.append("g")
+				.attr("class", "y-axis-label")
+				.attr("transform", "translate(" + (width / 2 + margin.left) + "," + (height + margin.top + margin.bottom) + ")")
+
+			yAxisLabel.append('text')
+				.attr("x", 0)
+				.attr("y", 0)
+				.attr("text-anchor", "middle")
+				.text("Dates")
+				.style("font-size", "12px")
+		}
+
+		function getRandom(min, max) {
+			return Math.random() * (max - min) + min;
+		}
+
+		function getRandomArray(min, max, N) {
+			var array = [];
+			var startDate = new Date();
+			for(var i = 0; i < N; i++) {
+				var date = new Date();
+				date.setDate(startDate.getDate() + i);
+				array.push({x:date, y:Math.random() * (max - min) + min});
+			}
+			return array;
+		}
+		
+	}()
+
+	var BillingPieChart = function(data) {
+
+		data = data || [1,1,1,1];
+		var colors = ['#FE3701', '#FFB600', '#7DCC00', '#FF5872'];
+
+		var width = 300;
+		var height = 300;
+		var id = '#billing-pie-chart';
+
+		var svg = d3.select(id)
+		    .append("svg")
+		    .attr("width", width)
+		    .attr("height", height)	
+
+		var pie = d3.layout.pie();
+		var arc = d3.svg.arc()
+		    .outerRadius(height/2)
+
+		var g = svg.append("g")
+		    .attr("transform", "translate(" + (width / 2) + "," + (height / 2) + ")");
+
+		g.selectAll("path")
+		 .data(pie(data))
+		 .enter()
+		 .append("path")
+		 .attr("fill", function(d,i) { return colors[i]; })
+		 //.attr("d", arc)
+			.transition()
+			.ease('linear')
+			.delay(function(d, i) { return i * 200; })
+			.duration(200)
+			.attrTween('d', function(d) {
+				var i = d3.interpolate(d.startAngle+0.1, d.endAngle);
+				return function(t) {
+					d.endAngle = i(t);
+					return arc(d);
+				}
+			})
+
+	}()
+
+
+  </script>

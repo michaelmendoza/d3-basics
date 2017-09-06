@@ -1,0 +1,92 @@
+
+<!DOCTYPE html>
+<html lang-"en">
+<head>
+	<meta charset="UTF-8">
+	<title> D3 Demo </title>
+	<meta name="viewport" content="width=device-width" minimum-scale="1" maximum-scale="1">
+	<title> React D3 Seed </title>
+</head>
+<body>
+	<section style="text-align:center">
+		<h1> D3 Donut Chart Example </h1>
+		<div id='d3-content'></div>
+	</section>
+
+  <!--Vendor Javascript - D3 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.16/d3.min.js"></script>
+
+  <script type="text/javascript">
+  				
+  	var data = [{x:1,y:10}, {x:2,y:8}, {x:3,y:6}, {x:4,y:4}, {x:5,y:5}];
+		data = getRandomArray(50,  100, 50);
+		var areaColor = '#C7EBFE';
+		var lineColor = '#89D7F9';
+
+		var width = 300;
+		var height = 300;
+		var id = '#d3-content';
+
+		var svg = d3.select(id)
+		    .append("svg")
+		    .attr("width", width)
+		    .attr("height", height)	
+
+		// Min and Max Values
+		var xmin = d3.min(data, function (d) { return d.x; });
+		var xmax = d3.max(data, function(d) { return d.x; });
+		var ymin = 0.8 * d3.min(data, function (d) { return d.y; });
+		var ymax = 1.2 * d3.max(data, function(d) { return d.y; });
+
+		// Get Scale
+		var x = d3.scale.linear()
+			.domain([xmin, xmax])
+			.range([0, width]);
+		var y = d3.scale.linear()
+			.domain([ymin , ymax])
+			.range([height, 0]);
+
+		// Create area, and line chart objects
+		var line = d3.svg.line()
+			.x(function(d) { return x(d.x); })
+			.y(function(d) { return y(d.y); })
+
+		var area = d3.svg.area()
+			.x(function(d) { return x(d.x); })
+			.y0(height)
+			.y1(function(d) { return y(d.y); })
+
+		// Create Group
+		var g = svg.append("g")
+
+		// Create line chart
+		g.append("path")
+			.data([data])
+			.attr("class", "line")
+			.attr("d", line)
+			.attr("stroke", lineColor)
+			.attr('stroke-width', 2)
+			.attr("fill", 'none')				    
+			.attr("opacity", "0.8")
+
+		// Create area chart
+		g.append("path")
+			.data([data])
+			.attr("class", "area")
+			.attr("d", area)
+			.attr("fill", areaColor)	
+			.attr("opacity", "0.75")		    
+
+		function getRandom(min, max) {
+			return Math.random() * (max - min) + min;
+		}
+
+		function getRandomArray(min, max, N) {
+			var array = [];
+			for(var i = 0; i < N; i++) {
+				array.push({x:i, y:Math.random() * (max - min) + min});
+			}
+			return array;
+		}
+
+  </script>
