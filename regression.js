@@ -14,7 +14,7 @@ function linearLeastSquares(x, y) {
 	}
 	xBar = xBar / count;
 	yBar = yBar / count;
-	
+
 	// Calculate beta2
 	for (var i = 0; i < count; i++) {
 		temp1 = temp1 + (x[i] - xBar) * (y[i] - yBar);
@@ -29,11 +29,6 @@ function linearLeastSquares(x, y) {
 	return [beta1, beta2];
 }
 
-function createLinearModel(x, beta) {
-	var N = x.length;
-	var y = Array(N);
-	for(var i = 0; i < N; i++) {
-		y[i] = x[i] * beta[1] + beta[0];
-	}
-	return y;
+function NonLinearLeastSquares(x, y) {
+	
 }

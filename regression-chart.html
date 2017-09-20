@@ -10,149 +10,136 @@
 <body>
 	<section style="text-align:center">
 		<h1> Regression Example </h1>
-		<div id='d3-content'></div>
+		<div id='chart-1'></div>
+		<div id='chart-2'></div>
+		<div id='chart-3'></div>
 	</section>
 
   <!--Vendor Javascript - D3 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.10.2/d3.js"></script>
 
   <!-- Regression -->
+  <script src="signal.js"></script>
   <script src="regression.js"></script>
 
   <script type="text/javascript">
   				
-	//var data = [{x:1,y:10}, {x:2,y:8}, {x:3,y:6}, {x:4,y:4}, {x:5,y:5}];
-	//data = getRandomArray(50,  100, 50);
-	var data = getLinearArray();
-	var rdata = getRegressionArray(data)
+	var data = createData('linear');
+	var data2 = createData('exponential');
+	var data3 = dataToLog(data2);
+	createChart('#chart-1', data.data, data.rdata);
+	createChart('#chart-2', data2.data, data2.rdata);
+	createChart('#chart-3', data3.data, data3.rdata);
 
-	var areaColor = '#C7EBFE';
-	var lineColor = '#89D7F9';
-	var scatterColor = '#00D5E9';
+	function createData(type) { 
+		var x = Signal.linspace(0, 10, 50); 
+		var y = (type == 'linear') ?  Signal.linearModel(x, 2, 1) : Signal.exponentialModel(x, 20, -0.5);
+		y = Signal.addRandomToArray(y, -1, 1);
+		var regress = getRegressionArray(x, y, type);	
+		var pts = Signal.toPointArray(x, y);
+		var rPts = Signal.toPointArray(x, regress.y)
+		return { data:pts, rdata:rPts, beta:regress.beta, regress:regress };		
+	} 
 
-	var width = 300;
-	var height = 300;
-	var id = '#d3-content';
+	function getRegressionArray(x, y, type) { 
 
-	var svg = d3.select(id)
-	    .append("svg")
-	    .attr("width", width)
-	    .attr("height", height)	
+		if(type == 'exponential') { y = Signal.setFloor(y, 0.01); y = Signal.log(y); }
+		var beta = linearLeastSquares(x, y);
 
-	// Min and Max Values
-	var xmin = d3.min(data, function (d) { return d.x; });
-	var xmax = d3.max(data, function(d) { return d.x; });
-	var ymin = 0.8 * d3.min(data, function (d) { return d.y; });
-	var ymax = 1.2 * d3.max(data, function(d) { return d.y; });
-
-	// Get Scale
-	var x = d3.scaleLinear()
-		.domain([xmin, xmax])
-		.range([0, width]);
-	var y = d3.scaleLinear()
-		.domain([ymin , ymax])
-		.range([height, 0]);
-
-	// Create area, and line chart objects
-	var line = d3.line()
-		.x(function(d) { return x(d.x); })
-		.y(function(d) { return y(d.y); })
-
-	var area = d3.area()
-		.x(function(d) { return x(d.x); })
-		.y0(height)
-		.y1(function(d) { return y(d.y); })
-
-	// Create Group
-	var g = svg.append("g")
-
-	// Create line chart 
-	g.append("path")
-		.data([rdata])
-		.attr("class", "line")
-		.attr("d", line)
-		.attr("stroke", lineColor)
-		.attr('stroke-width', 2)
-		.attr("fill", 'none')				    
-		.attr("opacity", "0.8")
-
-	// Create area chart
-	g.append("path")
-		.data([rdata])
-		.attr("class", "area")
-		.attr("d", area)
-		.attr("fill", areaColor)	
-		.attr("opacity", "0.2")		    
-
-	// Create scatter plot of data 
-	g.selectAll("circle")
-		.data(data)
-		.enter()
-		.append("circle")
-		.attr("r", 0.0)
-		.attr("cx", function(d) { return x(d.x); })
-		.attr("cy", function(d) { return y(d.y); })
-		.attr("fill", function(d, i) { return scatterColor; })
-		.attr("stroke", '#222222')
-
-	g.selectAll('circle')
-		.transition()
-		.duration(500)				
-		.attr("r", function(d, i) { return 2.0; })
-
-	function getRandom(min, max) {
-		return Math.random() * (max - min) + min;
-	}
-
-	function getRandomArray(min, max, N) {
-		var array = [];
-		for(var i = 0; i < N; i++) {
-			array.push({x:i, y:Math.random() * (max - min) + min});
+		var y1, yOut;
+		if(type == 'exponential') {
+			y1 = Signal.linearModel(x, beta[1], beta[0]);
+			beta[0] = Math.exp(beta[0]);
+			yOut = Signal.exponentialModel(x, beta[0], beta[1]);
 		}
-		return array;
-	}
-
-	function getLinearArray() {
-		N = 10;
-		var m = 2; var b = 1;
-		var out = Array(N)
-		for(var i = 0; i < N; i++) {
-			var x = i;
-			var y = x * m + b + getRandom(-2, 2);
-			out[i] = { x:x, y:y };
+		else if(type == 'linear') {
+			yOut = Signal.linearModel(x, beta[1], beta[0]);
 		}
-		return out;
+
+		return { x:x, y:yOut, y0:y, y1:y1, beta:beta };
 	}
 
-	function expandDataArray(data) {
-		var N = data.length;
-		var x = Array(N);
-		var y = Array(N);
-		for(var i = 0; i < N; i++) {
-			x[i] = data[i].x;
-			y[i] = data[i].y
-		}
-		return { x:x, y:y }
+	function dataToLog(data, beta) {
+		var pts = Signal.toPointArray(data.regress.x, data.regress.y0);
+		var rPts = Signal.toPointArray(data.regress.x, data.regress.y1);
+		return { data:pts, rdata:rPts };
 	}
 
-	function compressDataArray(x, y) {
-		var N = x.length;
-		var out = Array(N);
-		for(var i = 0; i < N; i++) {
-			out[i] = {};
-			out[i].x = x[i];
-			out[i].y = y[i];
-		}
-		return out;
-	}
+	function createChart(id, data, rdata) {
 
-	function getRegressionArray(data) {
-		var N = data.length;		
-		var out = Array(N);
-		var dataObj = expandDataArray(data);
-		var beta = linearLeastSquares(dataObj.x, dataObj.y);
-		var y = createLinearModel(dataObj.x, beta);
-		return compressDataArray(dataObj.x, y);
+		var areaColor = '#C7EBFE';
+		var lineColor = '#89D7F9';
+		var scatterColor = '#00D5E9';
+
+		var width = 300;
+		var height = 300;
+
+		var svg = d3.select(id)
+		    .append("svg")
+		    .attr("width", width)
+		    .attr("height", height)	
+
+		// Min and Max Values
+		var xmin = d3.min(data, function (d) { return d.x; });
+		var xmax = d3.max(data, function(d) { return d.x; });
+		var ymin = 0.8 * d3.min(data, function (d) { return d.y; });
+		var ymax = 1.2 * d3.max(data, function(d) { return d.y; });
+
+		// Get Scale
+		var x = d3.scaleLinear()
+			.domain([xmin, xmax])
+			.range([0, width]);
+		var y = d3.scaleLinear()
+			.domain([ymin , ymax])
+			.range([height, 0]);
+
+		// Create area, and line chart objects
+		var line = d3.line()
+			.x(function(d) { return x(d.x); })
+			.y(function(d) { return y(d.y); })
+
+		var area = d3.area()
+			.x(function(d) { return x(d.x); })
+			.y0(height)
+			.y1(function(d) { return y(d.y); })
+
+		// Create Group
+		var g = svg.append("g")
+
+		// Create line chart 
+		g.append("path")
+			.data([rdata])
+			.attr("class", "line")
+			.attr("d", line)
+			.attr("stroke", lineColor)
+			.attr('stroke-width', 2)
+			.attr("fill", 'none')				    
+			.attr("opacity", "0.8")
+
+		// Create area chart
+		g.append("path")
+			.data([rdata])
+			.attr("class", "area")
+			.attr("d", area)
+			.attr("fill", areaColor)	
+			.attr("opacity", "0.2")		    
+
+		// Create scatter plot of data 
+		g.selectAll("circle")
+			.data(data)
+			.enter()
+			.append("circle")
+			.attr("r", 0.0)
+			.attr("cx", function(d) { return x(d.x); })
+			.attr("cy", function(d) { return y(d.y); })
+			.attr("fill", function(d, i) { return scatterColor; })
+			.attr("stroke", '#222222')
+
+		g.selectAll('circle')
+			.transition()
+			.duration(500)				
+			.attr("r", function(d, i) { return 2.0; })
+
 	}
 
   </script>
