@@ -1,16 +1,25 @@
 {
   "name": "d3-demo",
   "version": "1.0.0",
-  "description": "",
   "main": "server.js",
   "dependencies": {
-    "express": "^4.15.4"
+    "express": "^4.15.4",
+    "ml-matrix": "^5.0.1"
   },
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
-  "author": "",
-  "license": "ISC"
+  "author": "Michael Mendoza",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/michaelmendoza/d3-basics.git"
+  },
+  "bugs": {
+    "url": "https://github.com/michaelmendoza/d3-basics/issues"
+  },
+  "homepage": "https://github.com/michaelmendoza/d3-basics#readme",
+  "description": ""
 }

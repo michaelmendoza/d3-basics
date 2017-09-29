@@ -13,23 +13,27 @@
 		<div id='chart-1'></div>
 		<div id='chart-2'></div>
 		<div id='chart-3'></div>
+		<div id='chart-4'></div>
 	</section>
 
-  <!--Vendor Javascript - D3 -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.10.2/d3.js"></script>
+	<!--Vendor Javascript - D3 -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.10.2/d3.js"></script>
+	<script src="matrix.js"></script>
 
-  <!-- Regression -->
-  <script src="signal.js"></script>
-  <script src="regression.js"></script>
+	<!-- Regression -->
+	<script src="signal.js"></script>
+	<script src="regression.js"></script>
 
-  <script type="text/javascript">
+	<script type="text/javascript">
   				
 	var data = createData('linear');
 	var data2 = createData('exponential');
 	var data3 = dataToLog(data2);
+	var data4 = createDataForNLS();
 	createChart('#chart-1', data.data, data.rdata);
 	createChart('#chart-2', data2.data, data2.rdata);
 	createChart('#chart-3', data3.data, data3.rdata);
+	createChart('#chart-4', data4.data, data4.rdata);
 
 	function createData(type) { 
 		var x = Signal.linspace(0, 10, 50); 
@@ -63,6 +67,17 @@
 		var pts = Signal.toPointArray(data.regress.x, data.regress.y0);
 		var rPts = Signal.toPointArray(data.regress.x, data.regress.y1);
 		return { data:pts, rdata:rPts };
+	}
+
+	function createDataForNLS() {
+		var x = Signal.linspace(0, 10, 50); 
+		var y = Signal.exponentialModel(x, 20, -0.5);
+		y = Signal.addRandomToArray(y, -1, 1);
+		var beta = NonLinearLeastSquares(x, y);
+		yRegress = Signal.exponentialModel(x, beta[0], beta[1]);
+		var pts = Signal.toPointArray(x, y);
+		var rPts = Signal.toPointArray(x, yRegress)
+		return { data:pts, rdata:rPts, beta:beta };	
 	}
 
 	function createChart(id, data, rdata) {
