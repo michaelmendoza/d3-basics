@@ -45,8 +45,8 @@ Model.Exponential = {
 function NonLinearLeastSquares(x, y) {
 	this.model = Model.Exponential;
 	this.b = [  1, 1 ];
-	this.f = model.f;
-	this.df = model.df;
+	this.f = this.model.f;
+	this.df = this.model.df;
 
 	this.damping = 1;
 	this.errorTolerance = 0.0001;

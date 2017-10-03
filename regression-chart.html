@@ -25,7 +25,8 @@
 	<script src="regression.js"></script>
 
 	<script type="text/javascript">
-  				
+  	
+  	var N = 50;
 	var data = createData('linear');
 	var data2 = createData('exponential');
 	var data3 = dataToLog(data2);
@@ -36,7 +37,7 @@
 	createChart('#chart-4', data4.data, data4.rdata);
 
 	function createData(type) { 
-		var x = Signal.linspace(0, 10, 50); 
+		var x = Signal.linspace(0, 10, N); 
 		var y = (type == 'linear') ?  Signal.linearModel(x, 2, 1) : Signal.exponentialModel(x, 20, -0.5);
 		y = Signal.addRandomToArray(y, -1, 1);
 		var regress = getRegressionArray(x, y, type);	
@@ -70,7 +71,7 @@
 	}
 
 	function createDataForNLS() {
-		var x = Signal.linspace(0, 10, 50); 
+		var x = Signal.linspace(0, 10, N); 
 		var y = Signal.exponentialModel(x, 20, -0.5);
 		y = Signal.addRandomToArray(y, -1, 1);
 		var beta = NonLinearLeastSquares(x, y);
