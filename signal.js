@@ -44,7 +44,7 @@ Signal.exponentialModel = function(x, A, lambda) {
 	return out;
 }
 
-Signal.biExponentialModel = function(x, b) {
+Signal.biexponentialModel = function(x, b) {
 	var N = x.length;
 	var out = Array(N);
 	for(var i = 0; i < N; i++) 
@@ -58,9 +58,9 @@ Signal.generateData = function(type, min, max, count, beta) {
 	var _y = {
 		'linear': function() { return Signal.linearModel(x, beta[0], beta[1]); },
 		'exponential': function() { return Signal.exponentialModel(x, beta[0], beta[1]); },
-		'biexponential': function() { return Signal.biExponentialModel(x, beta); }
+		'biexponential': function() { return Signal.biexponentialModel(x, beta); }
 	}
-	var y = _y[type];
+	var y = _y[type]();
 	y = Signal.addRandomToArray(y, -1, 1);
 	return { x:x, y:y };
 } 

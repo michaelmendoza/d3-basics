@@ -27,67 +27,55 @@
 	<script type="text/javascript">
   	
   var N = 50;
-	var data = createData('linear');
-	var data2 = createData('exponential');
-	var data3 = dataToLog(data2);
-	var data4 = createDataForNLS();
-	var data5 = createBiExp()
-	createChart('#chart-1', data.data, data.rdata);
+	var data1 = createLinear();
+	var data2 = createLogLinear();
+	var data3 = createExp();
+	var data4 = createBiExp();
+	createChart('#chart-1', data1.data, data1.rdata);
 	createChart('#chart-2', data2.data, data2.rdata);
 	createChart('#chart-3', data3.data, data3.rdata);
 	createChart('#chart-4', data4.data, data4.rdata);
 
-	function createData(type) { 
-		var x = Signal.linspace(0, 10, N); 
-		var y = (type == 'linear') ?  Signal.linearModel(x, 1, 2) : Signal.exponentialModel(x, 20, -0.5);
-		y = Signal.addRandomToArray(y, -1, 1);
-		var regress = getRegressionArray(x, y, type);	
-		var pts = Signal.toPointArray(x, y);
-		var rPts = Signal.toPointArray(x, regress.y)
-		return { data:pts, rdata:rPts, beta:regress.beta, regress:regress };		
+	function createLinear() {
+		var d = Signal.generateData('linear', 0, 10, N, [1, 2])
+		var beta = linearLeastSquares(d.x, d.y);
+		var yhat = Signal.linearModel(d.x, beta[0], beta[1]);
+		return { data:[d, { x:d.x, y:yhat }], beta:beta };	
+	}
+
+	function logLinearRegression(x, y) {
+		y = Signal.setFloor(y, 0.01); 
+		y = Signal.log(y);
+		var beta = linearLeastSquares(x, y);
+		beta[0] = Math.exp(beta[0]);
+		return beta;
+	}
+
+	function createLogLinear() {
+		var d = Signal.generateData('exponential', 0, 10, N, [20, -0.5]);
+		var beta = logLinearRegression(d.x, d.y);
+		var yhat = Signal.exponentialModel(d.x, beta[0], beta[1]);
+		return { data:[d, { x:d.x, y:yhat }], beta:beta };	
+	}
+
+	function createExp() {
+		var d = Signal.generateData('exponential', 0, 10, N, [20, -0.5]);
+		var beta = NonLinearLeastSquares(d.x, d.y, Model.Exponential);
+		var yhat = Signal.exponentialModel(d.x, beta[0], beta[1]);
+		return { data:[d, { x:d.x, y:yhat }], beta:beta };	
 	} 
 
-	function getRegressionArray(x, y, type) { 
-
-		if(type == 'exponential') { y = Signal.setFloor(y, 0.01); y = Signal.log(y); }
-		var beta = linearLeastSquares(x, y);
-
-		var y1, yOut;
-		if(type == 'exponential') {
-			y1 = Signal.linearModel(x, beta[0], beta[1]);
-			beta[0] = Math.exp(beta[0]);
-			yOut = Signal.exponentialModel(x, beta[0], beta[1]);
-		}
-		else if(type == 'linear') {
-			yOut = Signal.linearModel(x, beta[0], beta[1]);
-		}
-
-		return { x:x, y:yOut, y0:y, y1:y1, beta:beta };
-	}
-
-	function dataToLog(data, beta) {
-		var pts = Signal.toPointArray(data.regress.x, data.regress.y0);
-		var rPts = Signal.toPointArray(data.regress.x, data.regress.y1);
-		return { data:pts, rdata:rPts };
-	}
-
-	function createDataForNLS() {
-		var x = Signal.linspace(0, 10, N); 
-		var y = Signal.exponentialModel(x, 20, -0.5);
-		y = Signal.addRandomToArray(y, -1, 1);
-		var beta = NonLinearLeastSquares(x, y);
-		yRegress = Signal.exponentialModel(x, beta[0], beta[1]);
-		var pts = Signal.toPointArray(x, y);
-		var rPts = Signal.toPointArray(x, yRegress)
-		return { data:pts, rdata:rPts, beta:beta };	
-	}
-
 	function createBiExp() {
-		var d = Signal.generateData('biexponential', 0, 10, N, [20, -0.5, 10, -0.2])
-		
+		var d = Signal.generateData('biexponential', 0, 10, N, [10, -2.0, 10, -0.5]);
+		var beta = NonLinearLeastSquares(d.x, d.y, Model.BiExponential);
+		var yhat = Signal.biexponentialModel(d.x, beta);
+		return { data:[d, { x:d.x, y:yhat }], beta:beta };	
 	}
 
-	function createChart(id, data, rdata) {
+	function createChart(id, input) {
+
+		var data = Signal.toPointArray(input[0].x, input[0].y);
+		var rdata = Signal.toPointArray(input[1].x, input[1].y)
 
 		var areaColor = '#C7EBFE';
 		var lineColor = '#89D7F9';

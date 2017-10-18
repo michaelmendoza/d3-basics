@@ -34,6 +34,8 @@ function linearLeastSquares(x, y) {
 
 var Model = {};
 Model.Exponential = {
+	name:'exponential',
+	b: [ 1, 1 ],
 	f: function(x, b) { return b[0] * Math.exp(b[1] * x); },
 	df: 
 	[ 
@@ -43,6 +45,8 @@ Model.Exponential = {
 }
 
 Model.BiExponential = {
+	name:'biexponential',
+	b: [ 1, 1, 1, 1 ],	
 	f: function(x, b) { return b[0] * Math.exp(b[1] * x) + b[2] * Math.exp(b[3] * x); },
 	df: 
 	[ 
@@ -53,9 +57,9 @@ Model.BiExponential = {
 	]
 }
 
-function NonLinearLeastSquares(x, y) {
-	this.model = Model.Exponential;
-	this.b = [  1, 1 ];
+function NonLinearLeastSquares(x, y, model) {
+	this.model = model;
+	this.b = this.model.b;
 	this.f = this.model.f;
 	this.df = this.model.df;
 
