@@ -42,6 +42,17 @@ Model.Exponential = {
 	]
 }
 
+Model.BiExponential = {
+	f: function(x, b) { return b[0] * Math.exp(b[1] * x) + b[2] * Math.exp(b[3] * x); },
+	df: 
+	[ 
+		function(x, b) { return Math.exp(b[1] * x); },
+		function(x, b) { return (b[0] * x) * Math.exp(b[1] * x); },
+		function(x, b) { return Math.exp(b[3] * x); },
+		function(x, b) { return (b[2] * x) * Math.exp(b[3] * x); }		
+	]
+}
+
 function NonLinearLeastSquares(x, y) {
 	this.model = Model.Exponential;
 	this.b = [  1, 1 ];

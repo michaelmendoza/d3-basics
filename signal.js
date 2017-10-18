@@ -28,7 +28,7 @@ Signal.linspace = function(min, max, N) {
 	return out;
 }
 
-Signal.linearModel = function(x, m, b) {
+Signal.linearModel = function(x, b, m) {
 	var N = x.length;
 	var out = Array(N);
 	for(var i = 0; i < N; i++)
@@ -43,6 +43,27 @@ Signal.exponentialModel = function(x, A, lambda) {
 		out[i] = A * Math.exp(x[i] * lambda);
 	return out;
 }
+
+Signal.biExponentialModel = function(x, b) {
+	var N = x.length;
+	var out = Array(N);
+	for(var i = 0; i < N; i++) 
+		out[i] = b[0] * Math.exp(b[1] * x[i]) + b[2] * Math.exp(b[3] * x[i]);
+	return out;
+}
+
+Signal.generateData = function(type, min, max, count, beta) {
+
+	var x = Signal.linspace(min, max, count);
+	var _y = {
+		'linear': function() { return Signal.linearModel(x, beta[0], beta[1]); },
+		'exponential': function() { return Signal.exponentialModel(x, beta[0], beta[1]); },
+		'biexponential': function() { return Signal.biExponentialModel(x, beta); }
+	}
+	var y = _y[type];
+	y = Signal.addRandomToArray(y, -1, 1);
+	return { x:x, y:y };
+} 
 
 Signal.log = function(x) {
 	var N = x.length;

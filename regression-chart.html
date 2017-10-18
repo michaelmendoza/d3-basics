@@ -26,11 +26,12 @@
 
 	<script type="text/javascript">
   	
-  	var N = 50;
+  var N = 50;
 	var data = createData('linear');
 	var data2 = createData('exponential');
 	var data3 = dataToLog(data2);
 	var data4 = createDataForNLS();
+	var data5 = createBiExp()
 	createChart('#chart-1', data.data, data.rdata);
 	createChart('#chart-2', data2.data, data2.rdata);
 	createChart('#chart-3', data3.data, data3.rdata);
@@ -38,7 +39,7 @@
 
 	function createData(type) { 
 		var x = Signal.linspace(0, 10, N); 
-		var y = (type == 'linear') ?  Signal.linearModel(x, 2, 1) : Signal.exponentialModel(x, 20, -0.5);
+		var y = (type == 'linear') ?  Signal.linearModel(x, 1, 2) : Signal.exponentialModel(x, 20, -0.5);
 		y = Signal.addRandomToArray(y, -1, 1);
 		var regress = getRegressionArray(x, y, type);	
 		var pts = Signal.toPointArray(x, y);
@@ -53,12 +54,12 @@
 
 		var y1, yOut;
 		if(type == 'exponential') {
-			y1 = Signal.linearModel(x, beta[1], beta[0]);
+			y1 = Signal.linearModel(x, beta[0], beta[1]);
 			beta[0] = Math.exp(beta[0]);
 			yOut = Signal.exponentialModel(x, beta[0], beta[1]);
 		}
 		else if(type == 'linear') {
-			yOut = Signal.linearModel(x, beta[1], beta[0]);
+			yOut = Signal.linearModel(x, beta[0], beta[1]);
 		}
 
 		return { x:x, y:yOut, y0:y, y1:y1, beta:beta };
@@ -79,6 +80,11 @@
 		var pts = Signal.toPointArray(x, y);
 		var rPts = Signal.toPointArray(x, yRegress)
 		return { data:pts, rdata:rPts, beta:beta };	
+	}
+
+	function createBiExp() {
+		var d = Signal.generateData('biexponential', 0, 10, N, [20, -0.5, 10, -0.2])
+		
 	}
 
 	function createChart(id, data, rdata) {
