@@ -1,4 +1,6 @@
 
+/* Adapted from ml-matrix library (version 5.0.1) @link https://github.com/mljs/matrix */
+
 /**
  * @class LuDecomposition
  * @link https://github.com/lutzroeder/Mapack/blob/master/Source/LuDecomposition.cs
